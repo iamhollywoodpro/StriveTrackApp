@@ -1,0 +1,17 @@
+{
+  "name": "strivetrack",
+  "version": "1.0.0",
+  "description": "StriveTrack - Elite Fitness Platform",
+  "scripts": {},
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "bcryptjs": "^2.4.3",
+    "pm2": "^6.0.9",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.35.0"
+  },
+  "author": "Hollywood Pro",
+  "license": "MIT"
+}
