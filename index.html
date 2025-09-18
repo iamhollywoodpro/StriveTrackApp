@@ -3,13 +3,717 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StriveTrack - Redirecting...</title>
-    <script>
-        // Redirect to public/index.html immediately
-        window.location.href = './public/index.html';
-    </script>
+    <title>StriveTrack - Elite Fitness Platform</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/public/favicon.ico">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            --primary-blue: #3B82F6;
+            --primary-green: #10B981;
+            --primary-orange: #F59E0B;
+            --dark-bg: #0F172A;
+            --dark-surface: #1E293B;
+            --dark-border: #334155;
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --danger: #EF4444;
+            --success: #10B981;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Glass morphism effect */
+        .glass {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--dark-border);
+            border-radius: 12px;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+        }
+
+        /* Dashboard */
+        #dashboard {
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--dark-surface);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--dark-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-points {
+            background: linear-gradient(135deg, var(--primary-orange), var(--primary-blue));
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            background: var(--dark-surface);
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--dark-border);
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-tab.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+        }
+
+        .nav-tab:hover:not(.active) {
+            background: var(--dark-bg);
+            border-color: var(--dark-border);
+        }
+
+        /* Content Sections */
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Habits Calendar */
+        .habits-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .habit-card {
+            padding: 1.5rem;
+        }
+
+        .habit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .week-calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--dark-bg);
+            border: 1px solid var(--dark-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .day-cell:hover {
+            background: var(--dark-surface);
+            transform: scale(1.05);
+        }
+
+        .day-cell.completed {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .day-cell.missed {
+            background: var(--danger);
+            border-color: var(--danger);
+            opacity: 0.5;
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--dark-surface);
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            color: var(--text-primary);
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .nav-tabs {
+                padding: 1rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .habits-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--dark-border);
+            border-radius: 50%;
+            border-top-color: var(--primary-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notifications */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .notification.success {
+            background: var(--success);
+        }
+
+        .notification.error {
+            background: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>If you're not redirected automatically, <a href="./public/index.html">click here</a>.</p>
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="auth-container glass">
+            <div class="auth-header">
+                <div style="font-size: 4rem;">💪</div>
+                <h1>StriveTrack</h1>
+                <p style="color: var(--text-secondary);">Transform Your Life</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="login-btn-text">Login</span>
+                        <span id="login-loading" class="loading hidden"></span>
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <p style="color: var(--text-secondary);">
+                        Don't have an account? 
+                        <a href="#" onclick="showRegisterForm()" style="color: var(--primary-blue);">Sign up</a>
+                    </p>
+                    <button id="install-btn" class="btn btn-secondary hidden" style="margin-top: 1rem;">
+                        <i class="fas fa-download"></i> Install App
+                    </button>
+                </div>
+            </div>
+
+            <!-- Register Form (Hidden) -->
+            <div id="register-form" class="hidden">
+                <form onsubmit="register(event)">
+                    <div class="form-group">
+                        <label for="register-name">Name</label>
+                        <input type="text" id="register-name" required placeholder="Your Name">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required placeholder="Min 6 characters">
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="register-btn-text">Create Account</span>
+                        <span id="register-loading" class="loading hidden"></span>
+                    </button>
+                </form>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <p style="color: var(--text-secondary);">
+                        Already have an account? 
+                        <a href="#" onclick="showLoginForm()" style="color: var(--primary-blue);">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard (Hidden by default) -->
+    <div id="dashboard" class="hidden">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1 style="font-size: 1.5rem;">💪 StriveTrack</h1>
+                <span id="welcome-text">Welcome back!</span>
+            </div>
+            <div class="header-right">
+                <div class="user-points">
+                    <i class="fas fa-star"></i>
+                    <span id="user-points">0</span> pts
+                </div>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('dashboard')" data-section="dashboard">
+                <i class="fas fa-home"></i> Dashboard
+            </button>
+            <button class="nav-tab" onclick="showTab('habits')" data-section="habits">
+                <i class="fas fa-check-circle"></i> Habits
+            </button>
+            <button class="nav-tab" onclick="showTab('goals')" data-section="goals">
+                <i class="fas fa-bullseye"></i> Goals
+            </button>
+            <button class="nav-tab" onclick="showTab('nutrition')" data-section="nutrition">
+                <i class="fas fa-utensils"></i> Nutrition
+            </button>
+            <button class="nav-tab" onclick="showTab('progress')" data-section="progress">
+                <i class="fas fa-camera"></i> Progress
+            </button>
+            <button class="nav-tab" onclick="showTab('achievements')" data-section="achievements">
+                <i class="fas fa-trophy"></i> Achievements
+            </button>
+            <button class="nav-tab" onclick="showTab('social')" data-section="social">
+                <i class="fas fa-users"></i> Social
+            </button>
+            <button id="admin-tab" class="nav-tab hidden" onclick="showTab('admin')" data-section="admin">
+                <i class="fas fa-shield-alt"></i> Admin
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="section active">
+                <h2 style="margin-bottom: 1.5rem;">Your Dashboard</h2>
+                
+                <!-- Stats Grid -->
+                <div class="dashboard-grid">
+                    <div class="stat-card glass">
+                        <h3>Active Habits</h3>
+                        <div class="value" id="active-habits-count">0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <h3>Current Streak</h3>
+                        <div class="value" id="current-streak">0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <h3>Total Points</h3>
+                        <div class="value" id="total-points">0</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <h3>Achievements</h3>
+                        <div class="value" id="achievements-count">0</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div style="margin-top: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="showTab('habits'); openCreateHabitModal();">
+                            <i class="fas fa-plus"></i> Add Habit
+                        </button>
+                        <button class="btn btn-primary" onclick="showTab('nutrition'); openLogMealModal();">
+                            <i class="fas fa-utensils"></i> Log Meal
+                        </button>
+                        <button class="btn btn-primary" onclick="showTab('progress'); openUploadModal();">
+                            <i class="fas fa-camera"></i> Upload Progress
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Motivational Quote -->
+                <div class="glass" style="padding: 1.5rem; margin-top: 2rem; text-align: center;">
+                    <i class="fas fa-quote-left" style="color: var(--primary-blue); margin-bottom: 1rem;"></i>
+                    <p id="daily-quote" style="font-style: italic; color: var(--text-secondary);">
+                        "The only bad workout is the one that didn't happen."
+                    </p>
+                </div>
+            </div>
+
+            <!-- Habits Section -->
+            <div id="habits-section" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>My Habits</h2>
+                    <button class="btn btn-primary" onclick="openCreateHabitModal()">
+                        <i class="fas fa-plus"></i> New Habit
+                    </button>
+                </div>
+                
+                <div id="current-week-display" style="text-align: center; margin-bottom: 1rem; color: var(--text-secondary);"></div>
+                
+                <div id="habits-empty-state" class="empty-state glass">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h3>No habits yet</h3>
+                    <p>Start building better habits today!</p>
+                    <button class="btn btn-primary" onclick="openCreateHabitModal()" style="margin-top: 1rem;">
+                        Create Your First Habit
+                    </button>
+                </div>
+                
+                <div id="habits-container" class="habits-container"></div>
+            </div>
+
+            <!-- Goals Section -->
+            <div id="goals-section" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>My Goals</h2>
+                    <button class="btn btn-primary" onclick="openCreateGoalModal()">
+                        <i class="fas fa-plus"></i> New Goal
+                    </button>
+                </div>
+                <div id="goals-container"></div>
+            </div>
+
+            <!-- Nutrition Section -->
+            <div id="nutrition-section" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Nutrition Tracking</h2>
+                    <button class="btn btn-primary" onclick="openLogMealModal()">
+                        <i class="fas fa-plus"></i> Log Meal
+                    </button>
+                </div>
+                <div id="nutrition-container"></div>
+            </div>
+
+            <!-- Progress Section -->
+            <div id="progress-section" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Progress Gallery</h2>
+                    <button class="btn btn-primary" onclick="openUploadModal()">
+                        <i class="fas fa-upload"></i> Upload Media
+                    </button>
+                </div>
+                <div id="media-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;"></div>
+            </div>
+
+            <!-- Achievements Section -->
+            <div id="achievements-section" class="section">
+                <h2 style="margin-bottom: 1.5rem;">Achievements</h2>
+                <div id="achievements-container"></div>
+            </div>
+
+            <!-- Social Section -->
+            <div id="social-section" class="section">
+                <h2 style="margin-bottom: 1.5rem;">Social Hub</h2>
+                <div class="dashboard-grid">
+                    <div class="glass" style="padding: 1.5rem;">
+                        <h3>Friends</h3>
+                        <div id="friends-list"></div>
+                    </div>
+                    <div class="glass" style="padding: 1.5rem;">
+                        <h3>Live Chat</h3>
+                        <div id="chat-container"></div>
+                    </div>
+                    <div class="glass" style="padding: 1.5rem;">
+                        <h3>Leaderboard</h3>
+                        <div id="leaderboard"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Section -->
+            <div id="admin-section" class="section">
+                <h2 style="margin-bottom: 1.5rem;">Admin Dashboard</h2>
+                <div id="admin-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Habit Modal -->
+    <div id="create-habit-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New Habit</h2>
+            </div>
+            <form onsubmit="handleCreateHabit(event)">
+                <div class="form-group">
+                    <label for="habit-name">Habit Name</label>
+                    <input type="text" id="habit-name" name="habit-name" required placeholder="e.g., Take Vitamins">
+                </div>
+                <div class="form-group">
+                    <label for="habit-description">Description (Optional)</label>
+                    <input type="text" id="habit-description" name="habit-description" placeholder="Brief description">
+                </div>
+                <div class="form-group">
+                    <label for="habit-target">Weekly Target (days)</label>
+                    <input type="number" id="habit-target" name="habit-target" min="1" max="7" value="7">
+                </div>
+                <div class="form-group">
+                    <label for="habit-difficulty">Difficulty</label>
+                    <select id="habit-difficulty" name="habit-difficulty">
+                        <option value="easy">Easy</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-primary">Create Habit</button>
+                    <button type="button" onclick="closeModal('create-habit-modal')" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Helper functions for auth forms -->
+    <script>
+        function showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+        
+        function showLoginForm() {
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+    </script>
+
+    <!-- Load main app.js -->
+    <script src="app.js"></script>
 </body>
 </html>
